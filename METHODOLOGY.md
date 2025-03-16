@@ -1,105 +1,106 @@
-# Driving Cycle Analysis and Synthesis
+# Driving Cycle Synthesis Methodology
 
-This repository contains tools for analyzing, processing, and synthesizing driving cycles from real-world vehicle data. The project aims to create composite driving cycles that accurately represent various driving conditions for use in vehicle energy management research and development.
+This document explains the methodology used in this project for synthesizing custom driving cycles from real-world data.
 
-## Overview
+## Introduction
 
-Driving cycles are essential for evaluating vehicle performance, energy consumption, and emissions. This project offers tools to:
+Driving cycles are speed-time profiles that represent typical vehicle operation patterns in specific environments. They are essential for:
 
-- Extract and process time-speed data from multiple driving cycle segments  
-- Combine segments into a continuous, representative driving cycle  
-- Calculate key statistical metrics for driving cycle characterization  
-- Visualize individual and combined driving cycles  
-- Export processed data for use in simulation environments  
+- Vehicle energy consumption estimation
+- Powertrain component sizing and optimization
+- Energy management strategy development and testing
+- Emissions testing and certification
 
-## Data Source
+This project provides tools to create custom, representative driving cycles by combining segments of real-world driving data.
 
-The driving data used in this project comes from the JRC Data Catalogue:
-
-- **Dataset:** JRC Data Browser and Transportation - JRCDBT0001
-- **Specific Collection:** One Vehicle Multiple Drivers On-Road Campaign
-
-This dataset contains real-world driving data collected from vehicles in various driving conditions.
-
-## Features
-
-- **Multi-file Processing:** Automatically process and combine multiple CSV files containing driving cycle segments  
-- **Seamless Time Integration:** Adjust time values to create continuous driving cycles from separate segments  
-- **Statistical Analysis:** Calculate key metrics including:
-  - Mean and maximum speed  
-  - Maximum acceleration and deceleration  
-  - Speed standard deviation  
-  - Coefficient of variation (CV)  
-- **Visualization:** Generate plots for individual segments and combined driving cycles  
-- **Data Export:** Export processed data in various formats for further analysis or simulation  
-
-## Key Files
-
-- **`driving_cycle_processor.m`** - Main MATLAB script for processing and analyzing driving cycles  
-- **`README.md`** - Project documentation (this file)  
-- **Output files:**
-  - `combined_driving_data.mat` - Complete combined dataset  
-  - `combined_time_speed.mat` - Simplified dataset with only time and speed  
-  - `individual_driving_data.mat` - Data from individual files  
-  - `driving_metrics.mat` and `driving_metrics.csv` - Statistical metrics for all cycles  
-
-## Usage
-
-1. **Download the data:**  
-   Download the required CSV files from the JRC database and place them in the appropriate folder structure.
-
-2. **Configure the script:**  
-   Edit the `fileNames` variable in `driving_cycle_processor.m` to point to your CSV files.
-
-3. **Run the script:**  
-   ```matlab
-   run driving_cycle_processor.m
-   ```
-
-4. **Examine outputs:**  
-   - Check the generated MAT files for processed data  
-   - Review the CSV file for statistical metrics  
-   - Examine the generated plots for visual representation  
-
-## Applications
-
-This tool is particularly useful for:
-
-- Energy management system development for electric and hybrid vehicles  
-- Vehicle powertrain simulation and validation  
-- Comparative analysis of driving patterns  
-- Creation of custom driving cycles for specific research needs  
-
-## Methodology
+## Process Overview
 
 The driving cycle synthesis process follows these steps:
 
-1. **Data Extraction:** Read time, speed, and other relevant data from CSV files  
-2. **Time Adjustment:** Align consecutive segments to create a continuous timeline  
-3. **Data Combination:** Concatenate speed, engine speed, and gear data from all segments  
-4. **Metrics Calculation:** Compute statistical characteristics for each segment and the combined cycle  
-5. **Visualization:** Generate plots to visualize the data and provide visual verification  
-6. **Export:** Save the processed data in various formats for downstream applications  
+1. **Data Acquisition:** Obtain real-world driving data from the JRC database  
+2. **Segment Selection:** Choose appropriate segments based on research needs  
+3. **Data Extraction:** Process the CSV files to extract time, speed, and other parameters  
+4. **Segment Combination:** Join selected segments into a continuous driving cycle  
+5. **Statistical Analysis:** Calculate characteristic metrics for validation  
+6. **Visualization:** Generate plots for visual verification and analysis  
+7. **Export:** Save the processed data for use in simulation environments  
 
-## Example Output
+## Segment Selection Criteria
 
-### Sample Metrics
+When selecting driving segments to combine, consider:
 
-| Cycle Name  | Mean Speed (m/s) | Max Speed (m/s) | Max Accel (m/s²) | Min Accel (m/s²) | Std Speed (m/s) | CV  |
-|-------------|-----------------|-----------------|------------------|------------------|----------------|----|
-| D1_part1    | 12.32           | 35.90          | 3.76             | -3.09            | 10.11          | 0.82 |
-| D1_part2    | 8.98            | 36.47          | 2.04             | -2.49            | 8.18           | 0.91 |
-| D1_part3    | 8.01            | 33.35          | 2.68             | -2.64            | 7.99           | 1.00 |
-| Combined    | 10.71           | 21.00          | 2.90             | -1.04            | 5.65           | 0.53 |
+- **Driving Conditions:** Urban, suburban, highway, rural, etc.
+- **Speed Distribution:** Low-speed city driving, medium-speed suburban, high-speed highway
+- **Dynamics:** Segments with varying acceleration/deceleration patterns
+- **Duration:** Appropriate length to capture representative behavior
+- **Continuity:** Logical sequence that minimizes unrealistic transitions
 
-## Contributing
+## Time Alignment Method
 
-Contributions to improve the code or extend its functionality are welcome. Please feel free to submit pull requests or open issues for discussion.
+The script aligns time values when combining segments using the following approach:
 
-## Acknowledgements
+- The first segment's time values remain unchanged.
+- For each subsequent segment:
+  - The segment's time is shifted to start from the end time of the previous segment.
+  - This creates a continuous timeline without gaps or overlaps.
 
-We would like to express our gratitude to the European Commission's Joint Research Centre (JRC) for providing the open-access driving data used in this project. The JRC Open Data platform has been invaluable for our research and development work.
+```matlab
+if i == 1
+    combinedTime = timeData;
+else
+    lastTime = combinedTime(end);
+    adjustedTime = timeData - timeData(1) + lastTime;
+    combinedTime = [combinedTime; adjustedTime];
+end
+```
 
-## License
+## Key Metrics for Cycle Characterization
 
-This project is available under the MIT License - see the `LICENSE` file for details.
+To validate and characterize driving cycles, we calculate:
+
+- **Mean Speed:** Average velocity over the cycle (m/s)
+- **Maximum Speed:** Highest velocity reached (m/s)
+- **Maximum Acceleration:** Highest positive rate of change in velocity (m/s²)
+- **Maximum Deceleration:** Highest negative rate of change in velocity (m/s²)
+- **Speed Standard Deviation:** Measure of speed variation (m/s)
+- **Coefficient of Variation (CV):** Standard deviation divided by mean (dimensionless)
+
+These metrics help ensure the synthesized cycle accurately represents desired driving conditions.
+
+## Acceleration Calculation
+
+Acceleration values are calculated as the rate of change in speed:
+
+```matlab
+dt = diff(timeData);
+accelData = [0; diff(speedData) ./ dt];
+```
+
+The first value is set to zero since there is no preceding speed value for calculation.
+
+## Validation Approach
+
+To validate the synthesized driving cycle:
+
+- **Statistical Comparison:** Compare key metrics between individual segments and the combined cycle.
+- **Visual Inspection:** Examine speed profile plots for unrealistic transitions or patterns.
+- **Purpose Evaluation:** Assess whether the combined cycle meets the specific research objectives.
+
+## Use Cases for Synthesized Cycles
+
+The driving cycles created with this methodology can be used for:
+
+- **Energy Management Algorithm Development:** Testing and optimization of control strategies
+- **Powertrain Simulation:** Evaluating component performance under realistic conditions
+- **Vehicle Electrification Studies:** Sizing batteries and electric drivetrain components
+- **Research on Specific Driving Conditions:** Creating representative cycles for particular environments
+
+## Limitations and Considerations
+
+When using this methodology, be aware of:
+
+- **Transition Realism:** The joins between segments may not always represent realistic driving behavior.
+- **Regional Differences:** Driving patterns vary by location and may not transfer between regions.
+- **Vehicle Specificity:** Cycles created from one vehicle may not represent all vehicle types.
+- **Temporal Factors:** Time of day, season, and traffic conditions affect driving patterns.
+
