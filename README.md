@@ -92,6 +92,9 @@ The driving cycle synthesis process follows these steps:
 | D1_part3    | 8.01            | 33.35          | 2.68             | -2.64            | 7.99           | 1.00 |
 | Combined    | 10.71           | 21.00          | 2.90             | -1.04            | 5.65           | 0.53 |
 
+![Driving Cycles Demo](driving_cycles_demo.png)  
+![Joining Figure](Joining_fig.png)
+
 ## Contributing
 
 Contributions to improve the code or extend its functionality are welcome. Please feel free to submit pull requests or open issues for discussion.
